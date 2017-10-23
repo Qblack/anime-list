@@ -55,7 +55,7 @@ def get_image(title, soup):
     return image_path
 
 
-def get_rating(soup: BeautifulSoup):
+def get_score(soup: BeautifulSoup):
     rating_span = soup.find('span', attrs={'itemprop': 'ratingValue'})
     return rating_span.text
 
@@ -98,10 +98,17 @@ def get_ranking(soup):
     return rank
 
 
+def get_rating(soup):
+    section = soup.find('span', text='Rating:')
+    rating = list(section.parent)[2].strip()
+    return rating
+
+
 def main():
     with open('anime_list.csv', 'w+') as fh:
         import csv
-        dw = csv.DictWriter(fh, fieldnames=('title', 'score', 'ranking', 'genres', 'url', 'image_path', 'summary'))
+        dw = csv.DictWriter(fh, fieldnames=(
+        'title', 'score', 'ranking', 'genres', 'url', 'image_path', 'summary', 'rating'))
         dw.writeheader()
 
         for url in urls:
@@ -110,9 +117,10 @@ def main():
                 # title = get_title(url)
                 title = get_full_title(soup)
                 image_path = get_image(title, soup)
-                rating = get_rating(soup)
+                score = get_score(soup)
                 summary = get_summary(soup)
                 genres = ', '.join(get_genres(soup))
+                rating = get_rating(soup)
                 ranking = get_ranking(soup)
                 li = '''<li>
             <div class="col s12 m8 offset-m2 l6 offset-l3">
@@ -135,9 +143,11 @@ def main():
                                     <br>
                                     <h5 class="display-inline">Ranking:</h5>
                                     <div class="display-inline loud">{ranking}</div>
+                                    <h5 class="display-inline">Rating:</h5>
+                                    <div class="display-inline loud">{rating}</div>
                                 </div>
                                 <div class="col s2">
-                                    <h5>Genres:</h5>
+                                    <h5 class="top-title">Genres:</h5>
                                     {genres}
                                 </div>
                             </div>
@@ -153,12 +163,12 @@ def main():
                     </div>
                 </div>
             </div>
-        </li>'''.format(image_path=image_path, title=title, score=rating, summary=summary, url=url, genres=genres,
-                        ranking=ranking)
+        </li>'''.format(image_path=image_path, title=title, score=score, summary=summary, url=url, genres=genres,
+                        ranking=ranking, rating=rating)
                 time.sleep(1)
                 print(li)
-                anime = dict(image_path=image_path, title=title, score=rating, summary=summary, url=url, genres=genres,
-                             ranking=ranking)
+                anime = dict(image_path=image_path, title=title, score=score, summary=summary, url=url, genres=genres,
+                             ranking=ranking, rating=rating)
                 dw.writerow(anime)
             except Exception as e:
                 print(e)
