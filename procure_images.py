@@ -15,7 +15,8 @@ urls = (
     'https://myanimelist.net/anime/2001/Tengen_Toppa_Gurren_Lagann',
     'https://myanimelist.net/anime/31043/Boku_dake_ga_Inai_Machi',
     'https://myanimelist.net/anime/18153/Kyoukai_no_Kanata', 'https://myanimelist.net/anime/31953/New_Game',
-    'https://myanimelist.net/anime/19815/No_Game_No_Life', 'https://myanimelist.net/anime/31798/Kiznaiver',
+    'https://myanimelist.net/anime/19815/No_Game_No_Life',
+    'https://myanimelist.net/anime/35557/Houseki_no_Kuni_TV', 'https://myanimelist.net/anime/31798/Kiznaiver',
     'https://myanimelist.net/anime/23755/Nanatsu_no_Taizai', 'https://myanimelist.net/anime/35062/Mahoutsukai_no_Yome',
     'https://myanimelist.net/anime/18679/Kill_la_Kill', 'https://myanimelist.net/anime/16498/Shingeki_no_Kyojin',
     'https://myanimelist.net/anime/22199/Akame_ga_Kill',
@@ -51,7 +52,12 @@ def get_image(title, soup):
         img = soup.find('img', attrs={'alt': title})
         image_path = img.attrs['src']
     except Exception as e:
-        image_path = soup.find_all('img')[1].attrs['src']
+        try:
+            image_path = soup.find_all('img')[1].attrs['src']
+            if 'amazon' in image_path:
+                raise
+        except Exception:
+            image_path = soup.find_all('img')[0].attrs['src']
     return image_path
 
 
@@ -60,11 +66,12 @@ def get_score(soup: BeautifulSoup):
     return rating_span.text
 
 
-@functools.lru_cache(maxsize=128, typed=False)
+@functools.lru_cache(typed=False)
 def get_soup(url):
     r = requests.get(url)
     data = r.text
     soup = BeautifulSoup(data, "html.parser")
+    time.sleep(2)
     return soup
 
 
